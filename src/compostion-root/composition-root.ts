@@ -1,19 +1,39 @@
-import { asClass, asFunction, createContainer, InjectionMode } from "awilix";
+import { asClass, asFunction, AwilixContainer } from 'awilix'
 import { createAxiosInstance } from '../apiService/create-axios-instance'
 import { AuthService } from '../Auth/auth-service'
 import { AuthState } from '../Auth/auth-state'
+import { createAuthStream } from '../Pages/Register/register'
+import { createRefreshTokenStream } from '../components/app-with-refresh-effect/app-with-refresh-effect'
 
-const container = createContainer({
-    injectionMode: InjectionMode.CLASSIC
-})
+export enum dependencyNameEnum {
+  apiService = 'apiService',
+  authService = 'authService',
+  authState = 'authState',
+  authStream = 'authStream',
+  refreshTokenStream = 'refreshTokenStream'
+}
 
-container.register(
-    'apiService',
+export function registerAwilixContainer(container: AwilixContainer) {
+  container.register(
+    dependencyNameEnum.apiService,
     asFunction(() => createAxiosInstance())
-)
+  )
 
-container.register('authService', asClass(AuthService))
+  container.register(dependencyNameEnum.authService, asClass(AuthService))
 
-container.register('authState', asClass(AuthState))
+  container.register(dependencyNameEnum.authState, asClass(AuthState))
 
-export { container }
+  container.register(
+    dependencyNameEnum.authStream,
+    asFunction((authState) => {
+      return createAuthStream(authState)
+    })
+  )
+
+  container.register(
+    dependencyNameEnum.refreshTokenStream,
+    asFunction((authState) => {
+      return createRefreshTokenStream(authState)
+    })
+  )
+}
