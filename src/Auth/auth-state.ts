@@ -1,4 +1,4 @@
-import { scan, Subject, switchMap, map, merge, Observable, ReplaySubject } from 'rxjs'
+import { scan, Subject, switchMap, map, merge, Observable } from 'rxjs'
 import { IAuthService } from './auth-service'
 
 export type LoginCredentials = {
@@ -49,11 +49,12 @@ const authActions = {
     ({
       type: AuthEvent.DidLogoutRequestCompleted
     } as const),
-  DidTokenRefreshRequestCompleted: (tokens: Tokens) =>
-    ({
+  DidTokenRefreshRequestCompleted: (tokens: Tokens) => {
+    return {
       type: AuthEvent.DidTokenRefreshRequestCompleted,
       payload: { tokens }
-    } as const)
+    } as const
+  }
 }
 
 export class AuthState implements IAuthState {
@@ -80,7 +81,7 @@ export class AuthState implements IAuthState {
     this.onRegister$ = new Subject<LoginCredentials>()
     this.onLogin$ = new Subject<LoginCredentials>()
     this.onLogout$ = new Subject<void>()
-    this.onRefreshToken$ = new ReplaySubject<void>(1)
+    this.onRefreshToken$ = new Subject<void>()
 
     const registerResult$ = this.onRegister$.pipe(
       switchMap(async (creds: LoginCredentials) => this.authService.register(creds))
@@ -93,7 +94,9 @@ export class AuthState implements IAuthState {
     const logoutResult$ = this.onLogout$.pipe(switchMap(async () => this.authService.logout()))
 
     const refreshResult$ = this.onRefreshToken$.pipe(
-      switchMap(async () => this.authService.refreshToken())
+      switchMap(async () => {
+        return this.authService.refreshToken()
+      })
     )
 
     this.state$ = merge(

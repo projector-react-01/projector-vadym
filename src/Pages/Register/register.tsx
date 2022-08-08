@@ -1,7 +1,6 @@
 import React, { FC } from 'react'
-import { withDiInject } from '../../DI-Inject-HOC/withDiInject'
 import { LoginCredentials } from '../../Auth/auth-state'
-import { ComposeFunction, connect } from '../../DI-Inject-HOC/rx-js-connector'
+import { ComposeFunction, connect } from '../../connector/rx-js-connector'
 import { Observable } from 'rxjs'
 
 type ViewProps = {
@@ -18,7 +17,7 @@ type ViewModelProps = {
 
 type Props = {}
 
-function composeAppStreams({
+export function createAuthStream({
   isAuthenticated$,
   logout,
   login
@@ -53,15 +52,7 @@ export const RegisterView: FC<ViewProps> = (props) => {
   )
 }
 
-export const RegisterViewModel = ({ isAuthenticated$, logout, login }: ViewModelProps) => {
-  const ConnectedComponent = connect(
-    RegisterView,
-    composeAppStreams({ isAuthenticated$, logout, login })
-  )
-  return <ConnectedComponent />
-}
-
 export const Register: FC = ({}: Props) => {
-  const Component = withDiInject(RegisterViewModel, 'authState')
+  const Component = connect(RegisterView, 'authStream')
   return <Component />
 }
